@@ -19,7 +19,7 @@ eksctl create nodegroup \
   --cluster cluster-00 \
   --region us-east-1 \
   --name workers-00 \
-  --node-type t3.micro \
+  --node-type t3a.large \
   --node-volume-size=21 \
   --nodes 2 \
   --nodes-min 2 \
@@ -35,6 +35,8 @@ eksctl create nodegroup \
 #get nodes
 kubectl get nodes
 kubectl get nodes -o wide
+
+eksctl delete nodegroup --cluster=cluster-00 --name=workers-00
 
 #delete cluster
 eksctl delete cluster --name cluster-00
@@ -63,3 +65,15 @@ kubectl get all
 kubectl delete svc my-first-service
 kubectl delete pod my-first-pod
 
+#deployment
+kubectl create deployment deployment00 --image=nginx
+kubectl get deploy
+kubectl get deploy -o wide
+kubectl describe deployment deployment00
+kubectl get rs
+kubectl scale --replicas=5 deployment/deployment00
+kubectl expose deployment deployment00 --type=NodePort --port=80 --target-port=80 --name=svc-for-deploy00
+kubectl edit deployment/deployment00
+kubectl rollout history deployment/deployment00
+kubectl rollout history deployment/deployment00 --revision=1
+kubectl rollout undo deployment deployment00
