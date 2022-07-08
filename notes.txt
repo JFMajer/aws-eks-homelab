@@ -1,0 +1,65 @@
+#create first cluster, no worker nodes
+eksctl create cluster --name=cluster-00 --region=us-east-1 --zones=us-east-1a,us-east-1b --without-nodegroup
+
+#check cluster
+eksctl get cluster
+
+#get nodes, should return nothing
+kubectl get nodes
+
+#create IAMOIDC identity provider
+aws eks describe-cluster --name cluster-00 --query "cluster.identity.oidc.issuer" --output text
+aws iam list-open-id-connect-providers | grep <output from above>
+
+#if no output, then:
+eksctl utils associate-iam-oidc-provider --cluster cluster-00 --approve
+
+#create managed node group
+eksctl create nodegroup \
+  --cluster cluster-00 \
+  --region us-east-1 \
+  --name workers-00 \
+  --node-type t3.micro \
+  --node-volume-size=21 \
+  --nodes 2 \
+  --nodes-min 2 \
+  --nodes-max 4 \
+  --ssh-access \
+  --ssh-public-key A4L \
+  --node-private-networking \
+  --spot \
+  --full-ecr-access \ 
+  --appmesh-access \
+  --alb-ingress-access
+
+#get nodes
+kubectl get nodes
+kubectl get nodes -o wide
+
+#delete cluster
+eksctl delete cluster --name cluster-00
+
+
+#imperative 
+kubectl run nginx-pod --image nginx
+kubectl describe pod nginx-pod
+kubectl get po my-first-pod -o yaml
+kubectl delete pod nginx-pod
+
+#create NodePort service
+kubectl expose pod my-first-pod --type=NodePort --port=80 --name=my-first-service
+kubectl get svc
+kubectl get svc -o wide
+
+kubectl get logs my-first-pod
+kubectl get logs my-first-pod -f
+
+#connect to container
+kubectl exec -it my-first-pod -- /bin/bash
+kubectl exec my-first-pod -- env
+kubectl exec my-first-pod -- pwd
+
+kubectl get all
+kubectl delete svc my-first-service
+kubectl delete pod my-first-pod
+
