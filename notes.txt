@@ -77,3 +77,5 @@ kubectl edit deployment/deployment00
 kubectl rollout history deployment/deployment00
 kubectl rollout history deployment/deployment00 --revision=1
 kubectl rollout undo deployment deployment00
+
+kubectl apply -f <yml file>
