@@ -1,5 +1,5 @@
 #create first cluster, no worker nodes
-eksctl create cluster --name=cluster-00 --region=us-east-1 --zones=us-east-1a,us-east-1b --without-nodegroup
+eksctl create cluster --name=cluster-00 --region=us-east-1 --zones=us-east-1a,us-east-1b,us-east-1c --without-nodegroup
 
 #check cluster
 eksctl get cluster
@@ -14,7 +14,24 @@ aws iam list-open-id-connect-providers | grep <output from above>
 #if no output, then:
 eksctl utils associate-iam-oidc-provider --cluster cluster-00 --approve
 
-#create managed node group
+#create managed node group, public networking
+eksctl create nodegroup \
+  --cluster cluster-00 \
+  --region us-east-1 \
+  --name workers-00 \
+  --node-type t3a.large \
+  --node-volume-size=21 \
+  --nodes 2 \
+  --nodes-min 2 \
+  --nodes-max 4 \
+  --ssh-access \
+  --ssh-public-key A4L \
+  --spot \
+  --full-ecr-access \ 
+  --appmesh-access \
+  --alb-ingress-access
+
+#create managed node group, private subnets
 eksctl create nodegroup \
   --cluster cluster-00 \
   --region us-east-1 \
@@ -79,3 +96,13 @@ kubectl rollout history deployment/deployment00 --revision=1
 kubectl rollout undo deployment deployment00
 
 kubectl apply -f <yml file>
+
+#get worker nodes IAM role
+kubectl -n kube-system describe configmap aws-auth
+
+#deploying CSI driver
+kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=release-1.9"
+kubectl get pods -n kube-system
+
+kubectl get sc
+kubectl get pvc
