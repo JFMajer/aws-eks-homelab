@@ -108,4 +108,8 @@ kubectl get sc
 kubectl get pvc
 
 #namespaces
-kubectl create namespace <name>
+kubectl create namespace dev
+kubectl apply -f nginx/ -n dev
+kubectl get po -o wide -n dev
+kubectl get svc -n dev
+kubectl delete ns dev
